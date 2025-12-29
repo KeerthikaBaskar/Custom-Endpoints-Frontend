@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WSO2 Gateway API Client</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .api-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .api-section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.8em;
+    }
+
+    .api-section p {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .response-box {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      display: none;
+    }
+
+    .response-box.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .response-box.error {
+      border-left-color: #e74c3c;
+      background: #fee;
+    }
+
+    .response-box.success {
+      border-left-color: #27ae60;
+      background: #efe;
+    }
+
+    .response-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    pre {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .endpoint-badge {
+      display: inline-block;
+      background: #f0f0f0;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 WSO2 Gateway API Client</h1>
+
+    <!-- Header-Based API Section -->
+    <div class="api-section">
+      <h2>📋 Header Data Endpoint</h2>
+      <div class="endpoint-badge">/data</div>
+      <p>It gives the response where the api key is used in the headers</p>
+      <button id="testBtn1">
+        Fetch Sensor Data
+      </button>
+      <div id="response1" class="response-box">
+        <div class="response-title">Response:</div>
+        <pre id="responseContent1"></pre>
+      </div>
+    </div>
+
+    <!-- Query Param-Based API Section -->
+    <div class="api-section">
+      <h2>💳 Query Data Endpoint</h2>
+      <div class="endpoint-badge">/data2</div>
+      <p>It provides the response where the api key is used in the query parameters</p>
+      <button id="testBtn2">
+        Fetch Transaction Data
+      </button>
+      <div id="response2" class="response-box">
+        <div class="response-title">Response:</div>
+        <pre id="responseContent2"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // WSO2 Gateway Configuration
+    const WSO2_BASE_URL = 'https://98.89.23.19:8243/key/v1';
+    const AUTHORIZATION_KEY = 'Bearer eyJ4NXQiOiJNekF6TVRGak9EUTFNRE5qT1RVMVpEQTROR1E1TURrell6RTNNV0k0TW1SbFpHVTNZelpqWWprNFpHUmtNMlJoTW1Jd01qQXhZekpsTUdKak5qZG1OdyIsImtpZCI6Ik16QXpNVEZqT0RRMU1ETmpPVFUxWkRBNE5HUTVNRGt6WXpFM01XSTRNbVJsWkdVM1l6WmpZams0WkdSa00yUmhNbUl3TWpBeFl6SmxNR0pqTmpkbU53X1JTMjU2IiwidHlwIjoiYXQrand0IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMWYzZjQ3OC0zNjBlLTQyMTAtODcyNS0xYzE2OWQ2ZDIzZmIiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6ImJVSjNyejJ5U1VnanBTeFJXU1E5YkFyRlhuOGEiLCJuYmYiOjE3NjY5OTA1MDIsImF6cCI6ImJVSjNyejJ5U1VnanBTeFJXU1E5YkFyRlhuOGEiLCJzY29wZSI6ImRlZmF1bHQiLCJpc3MiOiJodHRwczovLzk4Ljg5LjIzLjE5Ojk0NDMvb2F1dGgyL3Rva2VuIiwiZXhwIjoxNzY2OTk0MTAyLCJpYXQiOjE3NjY5OTA1MDIsImp0aSI6ImJiMjZjZTY0LTk2OWItNDA4OC1iYTEwLWEwOGFjMzFmMWZiNSIsImNsaWVudF9pZCI6ImJVSjNyejJ5U1VnanBTeFJXU1E5YkFyRlhuOGEifQ.fspy7LcanchJA1NXU3F_eT9E8oHZek_ogUlWtx7YoqKGUhdoX7i62oJjcFOR-mqdQ7oNorHu6VTirXrygsaRUwqaSY5U3aOWmgonxMG8BCDZMmi8afVvsDoGemuQIpzW9lWmIZAbyFVJ1ge528qnFuWYyMi_w6YVlZANSzjEWaBHUJHS3z6YMDFtMJV1IX1d7SMheeEBR6-GA6n3veVIdW7jJTd_X7Y3nC2ku4xiE1-gbByPSwYurCKxVYKiPG7cOHMiZuF_fUuFppBnDKmQBltWYLPwQcWnaUdisRDSnto6dDem8KEpSoqJPo0KAzTtQoMwkt2iSurP6FvfclpxaQ';
+
+    // Header-based endpoint test
+    document.getElementById('testBtn1').addEventListener('click', async () => {
+      const btn = document.getElementById('testBtn1');
+      const responseBox = document.getElementById('response1');
+      const responseContent = document.getElementById('responseContent1');
+
+      btn.disabled = true;
+      btn.innerHTML = 'Fetching... <span class="loading"></span>';
+      responseBox.classList.remove('show', 'error', 'success');
+
+      try {
+        const response = await fetch(`${WSO2_BASE_URL}/data`, {
+          method: 'GET',
+          headers: {
+            'Authorization': AUTHORIZATION_KEY,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+        responseContent.textContent = JSON.stringify(data, null, 2);
+        responseBox.classList.add('show', response.ok ? 'success' : 'error');
+      } catch (error) {
+        responseContent.textContent = JSON.stringify({
+          error: error.message,
+          hint: "Unable to connect to WSO2 Gateway. Check network connection and CORS settings."
+        }, null, 2);
+        responseBox.classList.add('show', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Fetch Sensor Data';
+      }
+    });
+
+    // Query param-based endpoint test
+    document.getElementById('testBtn2').addEventListener('click', async () => {
+      const btn = document.getElementById('testBtn2');
+      const responseBox = document.getElementById('response2');
+      const responseContent = document.getElementById('responseContent2');
+
+      btn.disabled = true;
+      btn.innerHTML = 'Fetching... <span class="loading"></span>';
+      responseBox.classList.remove('show', 'error', 'success');
+
+      try {
+        const response = await fetch(`${WSO2_BASE_URL}/data2`, {
+          method: 'GET',
+          headers: {
+            'Authorization': AUTHORIZATION_KEY,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+        responseContent.textContent = JSON.stringify(data, null, 2);
+        responseBox.classList.add('show', response.ok ? 'success' : 'error');
+      } catch (error) {
+        responseContent.textContent = JSON.stringify({
+          error: error.message,
+          hint: "Unable to connect to WSO2 Gateway. Check network connection and CORS settings."
+        }, null, 2);
+        responseBox.classList.add('show', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Fetch Transaction Data';
+      }
+    });
+  </script>
+</body>
+</html>
